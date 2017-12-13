@@ -10,13 +10,13 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-pub mod product;
+pub mod products;
 
 use std::str::FromStr;
 use std::fmt::Display;
 use serde::de::{Deserialize, Deserializer};
 use hyper::{Method, Request, Client};
-use hyper::header::ContentLength;
+use hyper::header::{ContentLength, UserAgent};
 use hyper::client::HttpConnector;
 use hyper_tls::HttpsConnector;
 use tokio_core::reactor::Core;
@@ -47,6 +47,17 @@ impl RESTConnector {
         }
     }
 
+    // TODO: Remove the https part from the url
+    /// Returns the default APIConnector (connected to the staging API)
+    pub fn default() -> RESTConnector {
+        RESTConnector::new("https://api.gdax.com")
+    }
+
+    /// Returns the sandbox APIConnector (connected to the staging API)
+    pub fn sandbox() -> RESTConnector {
+        RESTConnector::new("https://api-public.sandbox.gdax.com")
+    }
+
     fn send_http_request(&mut self, request: &EndPointRequest) -> String {
         // create the full request uri
         let uri = format!("{}{}", self.api_url, request.route).parse().unwrap();
@@ -55,6 +66,9 @@ impl RESTConnector {
         let mut req = Request::new(request.http_method.clone(), uri);
         req.headers_mut().set(ContentLength(request.body.len() as u64));
         req.set_body(request.body.clone());
+
+        // set the user agent (required by the API)
+        req.headers_mut().set(UserAgent::new("hyper/0.11"));
 
         let work = self.client.request(req).and_then(|res| {
             res.body().concat2()
@@ -81,6 +95,7 @@ pub struct EndPointRequest {
 pub trait EndPointRequestHandler<T> {
     fn create_request(&self) -> EndPointRequest;
     // TODO : ref or not?
+    // TODO : Handle error
     fn deserialize(&self, http_body: String) -> T;
 }
 

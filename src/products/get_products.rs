@@ -2,7 +2,6 @@ use hyper::Method;
 use serde_json;
 
 use ::{EndPointRequestHandler, EndPointRequest};
-
 use ::deserialize_from_str;
 
 pub struct GetProducts;
@@ -13,7 +12,7 @@ impl GetProducts {
     }
 }
 
-// TODO: use builder pattern instead of pub field
+// TODO: use builder pattern instead of pub field?
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Product {
     pub id: String,
@@ -37,6 +36,7 @@ impl EndPointRequestHandler<Vec<Product>> for GetProducts {
     }
 
     fn deserialize(&self, http_body: String) -> Vec<Product> {
+        println!("{}", &http_body);
         serde_json::from_str(&http_body).unwrap()
     }
 }
@@ -46,8 +46,7 @@ impl EndPointRequestHandler<Vec<Product>> for GetProducts {
 mod tests {
     use hyper::Method;
 
-    use product::GetProducts;
-    use product::Product;
+    use super::{GetProducts, Product};
     use EndPointRequestHandler;
     use EndPointRequest;
 
