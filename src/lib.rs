@@ -3,6 +3,7 @@ extern crate mockito;
 extern crate tokio_core;
 extern crate hyper_tls;
 extern crate futures;
+extern crate itertools;
 
 extern crate serde;
 extern crate serde_json;
@@ -11,6 +12,7 @@ extern crate serde_json;
 extern crate serde_derive;
 
 pub mod products;
+mod url;
 
 use std::str::FromStr;
 use std::fmt::Display;
@@ -20,19 +22,19 @@ use hyper::header::{ContentLength, UserAgent};
 use hyper::client::HttpConnector;
 use hyper_tls::HttpsConnector;
 use tokio_core::reactor::Core;
-
-
 use futures::{Future, Stream};
 
+use url::Route;
 
-pub struct RESTConnector {
+
+pub struct RESTClient {
     api_url: String,
     core: Core,
     client: Client<HttpsConnector<HttpConnector>, hyper::Body>
 }
 
-impl RESTConnector {
-    pub fn new(api_url: &str) -> RESTConnector {
+impl RESTClient {
+    pub fn new(api_url: &str) -> RESTClient {
         let core = Core::new().unwrap();
         let handle = core.handle();
         let connector = HttpsConnector::new(4, &handle).unwrap();
@@ -40,7 +42,7 @@ impl RESTConnector {
             .connector(connector)
             .build(&handle);
 
-        RESTConnector {
+        RESTClient {
             api_url: String::from(api_url),
             core,
             client,
@@ -49,18 +51,18 @@ impl RESTConnector {
 
     // TODO: Remove the https part from the url
     /// Returns the default APIConnector (connected to the staging API)
-    pub fn default() -> RESTConnector {
-        RESTConnector::new("https://api.gdax.com")
+    pub fn default() -> RESTClient {
+        RESTClient::new("https://api.gdax.com")
     }
 
     /// Returns the sandbox APIConnector (connected to the staging API)
-    pub fn sandbox() -> RESTConnector {
-        RESTConnector::new("https://api-public.sandbox.gdax.com")
+    pub fn sandbox() -> RESTClient {
+        RESTClient::new("https://api-public.sandbox.gdax.com")
     }
 
     fn send_http_request(&mut self, request: &EndPointRequest) -> String {
         // create the full request uri
-        let uri = format!("{}{}", self.api_url, request.route).parse().unwrap();
+        let uri = format!("{}{}", self.api_url, request.route.to_string()).parse().unwrap();
 
         // create request
         let mut req = Request::new(request.http_method.clone(), uri);
@@ -88,7 +90,7 @@ impl RESTConnector {
 #[derive(PartialEq, Debug)]
 pub struct EndPointRequest {
     http_method: Method,
-    route: String,
+    route: Route,
     body: String
 }
 
@@ -121,7 +123,8 @@ mod tests {
 
     use EndPointRequestHandler;
     use EndPointRequest;
-    use RESTConnector;
+    use RESTClient;
+    use url::Route;
 
     struct FakeRequestHandler;
 
@@ -133,7 +136,7 @@ mod tests {
         fn create_request(&self) -> EndPointRequest {
             EndPointRequest {
                 http_method: Method::Get,
-                route: String::from("/test"),
+                route: Route::new().add_segment(&"test"),
                 body: String::from(""),
             }
         }
@@ -149,9 +152,9 @@ mod tests {
     fn test_fake_request() {
         let _m = mock("GET", "/test").with_body("1").create();
 
-        let mut test_connector = RESTConnector::new(SERVER_URL);
+        let mut test_client = RESTClient::new(SERVER_URL);
         let request = FakeRequestHandler {};
 
-        assert_eq!(test_connector.request(&request).value, 1);
+        assert_eq!(test_client.request(&request).value, 1);
     }
 }

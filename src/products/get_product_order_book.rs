@@ -1,20 +1,30 @@
 use hyper::Method;
 use serde_json;
 
-use ::{EndPointRequestHandler, EndPointRequest};
+use ::{EndPointRequestHandler, EndPointRequest, Route};
 use ::deserialize_from_str;
 
 #[derive(Copy, Clone)]
 pub enum Level {
     Level1 = 1,
     Level2 = 2,
-    Level3 = 3, // TODO: Handle level 3
+    Level3 = 3, // TODO: Handle level 3 (with enum)
 }
 
 // TODO Make field private and create a constructor
 pub struct GetProductOrderBook {
+    /// Endpoint from https://docs.gdax.com/#get-product-order-book
     pub product_id: String,
     pub level: Level,
+}
+
+impl GetProductOrderBook {
+    pub fn new(product_id: String, level: Level) -> GetProductOrderBook {
+        GetProductOrderBook {
+            product_id,
+            level
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -30,15 +40,18 @@ pub struct PriceLevel {
     pub price: f64,
     #[serde(deserialize_with = "deserialize_from_str")]
     pub size: f64,
-    pub num_order: i64,
+    pub num_order: i64, // This one could be an enum to handle both case
 }
 
 impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
     fn create_request(&self) -> EndPointRequest {
         EndPointRequest {
             http_method: Method::Get,
-            // TODO use a url lib.... (for get att)
-            route: format!("/products/{}/book?level={}", self.product_id, self.level as i32),
+            route: Route::new()
+                .add_segment(&"products")
+                .add_segment(&self.product_id)
+                .add_segment(&"book")
+                .add_attribute_value(&"level", &(self.level as i32)),
             body: String::new(),
         }
     }
@@ -58,20 +71,25 @@ mod tests {
         Level,
         PriceLevel,
         GetProductOrderBook,
+        Route
     };
     use EndPointRequestHandler;
     use EndPointRequest;
 
     #[test]
     fn test_create_request() {
-        let request_handler = GetProductOrderBook {
-            product_id: String::from("BTC-USD"),
-            level: Level::Level2,
-        };
+        let request_handler = GetProductOrderBook::new(
+            String::from("BTC-USD"),
+            Level::Level2,
+        );
         let result = request_handler.create_request();
         let expected = EndPointRequest {
             http_method: Method::Get,
-            route: String::from("/products/BTC-USD/book?level=2"),
+            route: Route::new()
+                .add_segment(&"products")
+                .add_segment(&"BTC-USD")
+                .add_segment(&"book")
+                .add_attribute_value(&"level", &2),
             body: String::new(),
         };
         assert_eq!(result, expected);
@@ -80,10 +98,10 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let request_handler = GetProductOrderBook {
-            product_id: String::from("BTC-USD"),
-            level: Level::Level2,
-        };
+        let request_handler = GetProductOrderBook::new(
+            String::from("BTC-USD"),
+            Level::Level2,
+        );
         let result = request_handler.deserialize(String::from("
 {
     \"sequence\": 3,
@@ -133,5 +151,4 @@ mod tests {
         };
         assert_eq!(result, expected)
     }
-
 }

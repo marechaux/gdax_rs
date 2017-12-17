@@ -1,14 +1,13 @@
 extern crate rusty_gdax;
 
-use rusty_gdax::RESTConnector;
-use rusty_gdax::products::get_products::{Product, GetProducts};
+use rusty_gdax::RESTClient;
+use rusty_gdax::products::GetProducts;
 
 fn main() {
-    let mut test_connector = RESTConnector::default();
-    let products = test_connector.request(
+    let mut test_client = RESTClient::default();
+    let products = test_client.request(
         &GetProducts::new()
     );
 
-//    Product::get();
     println!("{:?}", products);
 }
