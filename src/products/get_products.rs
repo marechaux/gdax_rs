@@ -1,16 +1,15 @@
 use hyper::Method;
 use serde_json;
 
-use {EndPointRequest, EndPointRequestHandler};
+use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
-use deserialize_from_str;
 
+#[derive(Default)]
 pub struct GetProducts;
 
 impl GetProducts {
-    /// Endpoint from https://docs.gdax.com/#get-products
     pub fn new() -> GetProducts {
-        GetProducts {}
+        GetProducts::default()
     }
 }
 
@@ -44,9 +43,7 @@ impl EndPointRequestHandler<Vec<Product>> for GetProducts {
 mod tests {
     use hyper::Method;
 
-    use super::{GetProducts, Product, Route};
-    use EndPointRequestHandler;
-    use EndPointRequest;
+    use super::{EndPointRequest, EndPointRequestHandler, GetProducts, Product, Route};
 
     #[test]
     fn test_create_request() {

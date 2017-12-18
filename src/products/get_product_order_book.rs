@@ -1,8 +1,8 @@
 use hyper::Method;
 use serde_json;
 
-use {EndPointRequest, EndPointRequestHandler, Route};
-use deserialize_from_str;
+use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
+use url::Route;
 
 #[derive(Copy, Clone)]
 pub enum Level {
@@ -61,9 +61,8 @@ impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
 mod tests {
     use hyper::Method;
 
-    use super::{GetProductOrderBook, Level, OrderBook, PriceLevel, Route};
-    use EndPointRequestHandler;
-    use EndPointRequest;
+    use super::{EndPointRequest, EndPointRequestHandler, GetProductOrderBook, Level, OrderBook,
+                PriceLevel, Route};
 
     #[test]
     fn test_create_request() {

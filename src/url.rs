@@ -2,7 +2,7 @@ use std::fmt;
 
 use itertools::join;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Default)]
 pub struct Route {
     path: Vec<String>,
     query: Vec<AttributeValue>,
@@ -15,11 +15,9 @@ struct AttributeValue {
 }
 
 impl Route {
+
     pub fn new() -> Route {
-        Route {
-            path: Vec::new(),
-            query: Vec::new(),
-        }
+        Route::default()
     }
 
     pub fn add_attribute_value<T, U>(mut self, attribute: &T, value: &U) -> Route
@@ -64,7 +62,9 @@ mod tests {
 
     #[test]
     fn test_simple_route_string() {
-        let result = Route::new().add_segment(&String::from("seg")).to_string();
+        let result = Route::new()
+            .add_segment(&String::from("seg"))
+            .to_string();
 
         let expected = String::from("/seg");
 
