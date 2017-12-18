@@ -5,9 +5,7 @@ use rusty_gdax::products::GetProducts;
 
 fn main() {
     let mut test_client = RESTClient::default();
-    let products = test_client.request(
-        &GetProducts::new()
-    );
+    let products = test_client.request(&GetProducts::new());
 
     println!("{:?}", products);
 }

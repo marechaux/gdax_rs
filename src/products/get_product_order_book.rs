@@ -1,8 +1,8 @@
 use hyper::Method;
 use serde_json;
 
-use ::{EndPointRequestHandler, EndPointRequest, Route};
-use ::deserialize_from_str;
+use {EndPointRequest, EndPointRequestHandler, Route};
+use deserialize_from_str;
 
 #[derive(Copy, Clone)]
 pub enum Level {
@@ -20,10 +20,7 @@ pub struct GetProductOrderBook {
 
 impl GetProductOrderBook {
     pub fn new(product_id: String, level: Level) -> GetProductOrderBook {
-        GetProductOrderBook {
-            product_id,
-            level
-        }
+        GetProductOrderBook { product_id, level }
     }
 }
 
@@ -36,10 +33,8 @@ pub struct OrderBook<T> {
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct PriceLevel {
-    #[serde(deserialize_with = "deserialize_from_str")]
-    pub price: f64,
-    #[serde(deserialize_with = "deserialize_from_str")]
-    pub size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")] pub price: f64,
+    #[serde(deserialize_with = "deserialize_from_str")] pub size: f64,
     pub num_order: i64, // This one could be an enum to handle both case
 }
 
@@ -66,22 +61,13 @@ impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
 mod tests {
     use hyper::Method;
 
-    use super::{
-        OrderBook,
-        Level,
-        PriceLevel,
-        GetProductOrderBook,
-        Route
-    };
+    use super::{GetProductOrderBook, Level, OrderBook, PriceLevel, Route};
     use EndPointRequestHandler;
     use EndPointRequest;
 
     #[test]
     fn test_create_request() {
-        let request_handler = GetProductOrderBook::new(
-            String::from("BTC-USD"),
-            Level::Level2,
-        );
+        let request_handler = GetProductOrderBook::new(String::from("BTC-USD"), Level::Level2);
         let result = request_handler.create_request();
         let expected = EndPointRequest {
             http_method: Method::Get,
@@ -93,16 +79,13 @@ mod tests {
             body: String::new(),
         };
         assert_eq!(result, expected);
-
     }
 
     #[test]
     fn test_deserialize() {
-        let request_handler = GetProductOrderBook::new(
-            String::from("BTC-USD"),
-            Level::Level2,
-        );
-        let result = request_handler.deserialize(String::from("
+        let request_handler = GetProductOrderBook::new(String::from("BTC-USD"), Level::Level2);
+        let result = request_handler.deserialize(String::from(
+            "
 {
     \"sequence\": 3,
     \"bids\": [
@@ -115,7 +98,8 @@ mod tests {
         [\"16918.02\",\"9.88197274\",24]
     ]
 }
-        "));
+        ",
+        ));
         let expected = OrderBook {
             sequence: 3,
             bids: vec![
@@ -146,7 +130,6 @@ mod tests {
                     size: 9.88197274,
                     num_order: 24,
                 },
-
             ],
         };
         assert_eq!(result, expected)

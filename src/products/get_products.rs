@@ -1,9 +1,9 @@
 use hyper::Method;
 use serde_json;
 
-use ::{EndPointRequestHandler, EndPointRequest};
-use ::url::Route;
-use ::deserialize_from_str;
+use {EndPointRequest, EndPointRequestHandler};
+use url::Route;
+use deserialize_from_str;
 
 pub struct GetProducts;
 
@@ -20,12 +20,9 @@ pub struct Product {
     pub id: String,
     pub base_currency: String,
     pub quote_currency: String,
-    #[serde(deserialize_with = "deserialize_from_str")]
-    pub base_min_size: f64,
-    #[serde(deserialize_with = "deserialize_from_str")]
-    pub base_max_size: f64,
-    #[serde(deserialize_with = "deserialize_from_str")]
-    pub quote_increment: f64
+    #[serde(deserialize_with = "deserialize_from_str")] pub base_min_size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")] pub base_max_size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")] pub quote_increment: f64,
 }
 
 impl EndPointRequestHandler<Vec<Product>> for GetProducts {
@@ -42,7 +39,6 @@ impl EndPointRequestHandler<Vec<Product>> for GetProducts {
         serde_json::from_str(&http_body).unwrap()
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -67,7 +63,8 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetProducts.deserialize(String::from("
+        let result = GetProducts.deserialize(String::from(
+            "
 [
     {
         \"id\": \"BTC-USD\",
@@ -78,7 +75,8 @@ mod tests {
         \"quote_increment\": \"0.01\"
     }
 ]
-        "));
+        ",
+        ));
         let expected: Vec<Product> = vec![
             Product {
                 id: String::from("BTC-USD"),
@@ -87,9 +85,8 @@ mod tests {
                 base_min_size: 0.01,
                 base_max_size: 10000.0,
                 quote_increment: 0.01,
-            }
+            },
         ];
         assert_eq!(result, expected);
     }
 }
-
