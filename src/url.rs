@@ -15,7 +15,6 @@ struct AttributeValue {
 }
 
 impl Route {
-
     pub fn new() -> Route {
         Route::default()
     }
@@ -62,9 +61,7 @@ mod tests {
 
     #[test]
     fn test_simple_route_string() {
-        let result = Route::new()
-            .add_segment(&String::from("seg"))
-            .to_string();
+        let result = Route::new().add_segment(&String::from("seg")).to_string();
 
         let expected = String::from("/seg");
 

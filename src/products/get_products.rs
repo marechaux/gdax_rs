@@ -34,7 +34,6 @@ impl EndPointRequestHandler<Vec<Product>> for GetProducts {
     }
 
     fn deserialize(&self, http_body: String) -> Vec<Product> {
-        println!("{}", &http_body);
         serde_json::from_str(&http_body).unwrap()
     }
 }

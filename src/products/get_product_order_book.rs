@@ -52,7 +52,6 @@ impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
     }
 
     fn deserialize(&self, http_body: String) -> OrderBook<PriceLevel> {
-        println!("{}", &http_body);
         serde_json::from_str(&http_body).unwrap()
     }
 }
