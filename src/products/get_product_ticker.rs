@@ -6,12 +6,12 @@ use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler}
 use url::Route;
 
 pub struct GetProductTicker {
-    product: String,
+    product_id: String,
 }
 
 impl GetProductTicker {
-    pub fn new(product: String) -> GetProductTicker {
-        GetProductTicker { product }
+    pub fn new(product_id: String) -> GetProductTicker {
+        GetProductTicker { product_id }
     }
 }
 
@@ -32,7 +32,7 @@ impl EndPointRequestHandler<Ticker> for GetProductTicker {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
-                .add_segment(&self.product)
+                .add_segment(&self.product_id)
                 .add_segment(&"ticker"),
             body: String::new(),
         }
