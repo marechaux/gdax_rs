@@ -12,6 +12,7 @@ extern crate serde_json;
 extern crate tokio_core;
 
 pub mod products;
+pub mod currencies;
 mod url;
 mod rest_client;
 
