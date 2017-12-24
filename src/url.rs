@@ -53,7 +53,7 @@ impl fmt::Display for Route {
 impl fmt::Display for AttributeValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // encode the value with percents
-        let encoded_value = percent_encode(&self.value.as_bytes(), DEFAULT_ENCODE_SET).to_string();
+        let encoded_value = percent_encode(self.value.as_bytes(), DEFAULT_ENCODE_SET).to_string();
         write!(f, "{}={}", &self.attribute, encoded_value)
     }
 }
