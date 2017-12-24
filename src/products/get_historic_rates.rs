@@ -61,7 +61,7 @@ impl EndPointRequestHandler<Vec<Candle>> for GetHistoricRates {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use hyper::Method;
     use chrono::{TimeZone, Utc};
 

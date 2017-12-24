@@ -35,7 +35,7 @@ impl EndPointRequestHandler<Vec<Currency>> for GetCurrencies {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use hyper::Method;
 
     use super::{Currency, EndPointRequest, EndPointRequestHandler, GetCurrencies, Route};

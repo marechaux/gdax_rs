@@ -49,7 +49,7 @@ impl EndPointRequestHandler<Vec<Trade>> for GetTrades {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use chrono::{TimeZone, Utc};
 
     use super::{EndPointRequest, EndPointRequestHandler, GetTrades, Method, Route, Side, Trade};
