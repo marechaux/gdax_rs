@@ -4,6 +4,7 @@ extern crate hyper;
 extern crate hyper_tls;
 extern crate itertools;
 extern crate mockito;
+extern crate percent_encoding;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

@@ -1,6 +1,7 @@
 use std::fmt;
 
 use itertools::join;
+use percent_encoding::{percent_encode, DEFAULT_ENCODE_SET};
 
 #[derive(PartialEq, Debug, Default)]
 pub struct Route {
@@ -51,7 +52,9 @@ impl fmt::Display for Route {
 
 impl fmt::Display for AttributeValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}={}", &self.attribute, &self.value)
+        // encode the value with percents
+        let encoded_value = percent_encode(&self.value.as_bytes(), DEFAULT_ENCODE_SET).to_string();
+        write!(f, "{}={}", &self.attribute, encoded_value)
     }
 }
 
