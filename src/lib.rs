@@ -13,7 +13,7 @@ extern crate tokio_core;
 
 pub mod products;
 pub mod currencies;
+pub mod time;
 mod url;
 mod rest_client;
-
 pub use rest_client::RESTClient;
