@@ -5,13 +5,14 @@ use serde_json;
 
 use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
+use error::RestError;
 
 pub struct GetTrades {
     product_id: String,
 }
 
 impl GetTrades {
-    pub fn new(product_id: String) -> GetTrades {
+    pub fn new(product_id: String) -> Self {
         GetTrades { product_id }
     }
 }
@@ -43,8 +44,8 @@ impl EndPointRequestHandler<Vec<Trade>> for GetTrades {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Vec<Trade> {
-        serde_json::from_str(&http_body).unwrap()
+    fn deserialize(&self, http_body: String) -> Result<Vec<Trade>, RestError> {
+        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
     }
 }
 
@@ -71,8 +72,9 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetTrades::new(String::from("BTC-USD")).deserialize(String::from(
-            "\
+        let result = GetTrades::new(String::from("BTC-USD"))
+            .deserialize(String::from(
+                "\
 [{
     \"time\": \"2014-11-07T22:19:28.578544Z\",
     \"trade_id\": 74,
@@ -86,7 +88,8 @@ mod tests {
     \"size\": \"0.01000000\",
     \"side\": \"sell\"
 }]",
-        ));
+            ))
+            .unwrap();
         let expected = vec![
             Trade {
                 time: Utc.ymd(2014, 11, 07).and_hms_micro(22, 19, 28, 578_544),

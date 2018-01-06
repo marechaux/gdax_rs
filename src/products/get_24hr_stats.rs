@@ -3,13 +3,14 @@ use serde_json;
 
 use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
+use error::RestError;
 
 pub struct Get24hrStats {
     product_id: String,
 }
 
 impl Get24hrStats {
-    pub fn new(product_id: String) -> Get24hrStats {
+    pub fn new(product_id: String) -> Self {
         Get24hrStats { product_id }
     }
 }
@@ -33,8 +34,8 @@ impl EndPointRequestHandler<Stats> for Get24hrStats {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Stats {
-        serde_json::from_str(&http_body).unwrap()
+    fn deserialize(&self, http_body: String) -> Result<Stats, RestError> {
+        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
     }
 }
 
@@ -61,14 +62,16 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = Get24hrStats::new(String::from("BTC-USD")).deserialize(String::from(
-            "{
+        let result = Get24hrStats::new(String::from("BTC-USD"))
+            .deserialize(String::from(
+                "{
     \"open\": \"34.19000000\",
     \"high\": \"95.70000000\",
     \"low\": \"7.06000000\",
     \"volume\": \"2.41000000\"
 }",
-        ));
+            ))
+            .unwrap();
         let expected = Stats {
             open: 34.19,
             high: 95.7,

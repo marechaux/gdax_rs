@@ -3,12 +3,13 @@ use serde_json;
 
 use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
+use error::RestError;
 
 #[derive(Default)]
 pub struct GetCurrencies;
 
 impl GetCurrencies {
-    pub fn new() -> GetCurrencies {
+    pub fn new() -> Self {
         GetCurrencies::default()
     }
 }
@@ -29,8 +30,8 @@ impl EndPointRequestHandler<Vec<Currency>> for GetCurrencies {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Vec<Currency> {
-        serde_json::from_str(&http_body).unwrap()
+    fn deserialize(&self, http_body: String) -> Result<Vec<Currency>, RestError> {
+        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
     }
 }
 
@@ -55,8 +56,9 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetCurrencies::new().deserialize(String::from(
-            "[{
+        let result = GetCurrencies::new()
+            .deserialize(String::from(
+                "[{
     \"id\": \"BTC\",
     \"name\": \"Bitcoin\",
     \"min_size\": \"0.00000001\"
@@ -65,7 +67,8 @@ mod tests {
     \"name\": \"United States Dollar\",
     \"min_size\": \"0.01000000\"
 }]",
-        ));
+            ))
+            .unwrap();
         let expected = vec![
             Currency {
                 id: String::from("BTC"),

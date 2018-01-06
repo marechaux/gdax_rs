@@ -16,4 +16,5 @@ pub mod currencies;
 pub mod time;
 mod url;
 mod rest_client;
+mod error;
 pub use rest_client::RESTClient;

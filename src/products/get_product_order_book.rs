@@ -3,6 +3,7 @@ use serde_json;
 
 use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
+use error::RestError;
 
 #[derive(Copy, Clone)]
 pub enum Level {
@@ -19,7 +20,7 @@ pub struct GetProductOrderBook {
 }
 
 impl GetProductOrderBook {
-    pub fn new(product_id: String, level: Level) -> GetProductOrderBook {
+    pub fn new(product_id: String, level: Level) -> Self {
         GetProductOrderBook { product_id, level }
     }
 }
@@ -51,8 +52,8 @@ impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> OrderBook<PriceLevel> {
-        serde_json::from_str(&http_body).unwrap()
+    fn deserialize(&self, http_body: String) -> Result<OrderBook<PriceLevel>, RestError> {
+        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
     }
 }
 
@@ -82,8 +83,9 @@ mod tests {
     #[test]
     fn test_deserialize() {
         let request_handler = GetProductOrderBook::new(String::from("BTC-USD"), Level::Level2);
-        let result = request_handler.deserialize(String::from(
-            "
+        let result = request_handler
+            .deserialize(String::from(
+                "
 {
     \"sequence\": 3,
     \"bids\": [
@@ -97,7 +99,8 @@ mod tests {
     ]
 }
         ",
-        ));
+            ))
+            .unwrap();
         let expected = OrderBook {
             sequence: 3,
             bids: vec![

@@ -4,6 +4,7 @@ use hyper::Method;
 
 use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
+use error::RestError;
 
 pub struct GetHistoricRates {
     product_id: String,
@@ -19,7 +20,7 @@ impl GetHistoricRates {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
         granularity: i64,
-    ) -> GetHistoricRates {
+    ) -> Self {
         GetHistoricRates {
             product_id,
             start,
@@ -54,9 +55,9 @@ impl EndPointRequestHandler<Vec<Candle>> for GetHistoricRates {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Vec<Candle> {
+    fn deserialize(&self, http_body: String) -> Result<Vec<Candle>, RestError> {
         println!("body : \"{}\"", &http_body);
-        serde_json::from_str(&http_body).unwrap()
+        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
     }
 }
 
@@ -103,7 +104,8 @@ mod tests {
     [ 1415398768, 0.32, 4.2, 0.35, 4.2, 12.3 ],
     [ 1415398769, 0.33, 4.3, 0.36, 4.2, 12.3 ]
 ]",
-        ));
+        ))
+            .unwrap();
         let expected = vec![
             Candle {
                 time: 1415398768,

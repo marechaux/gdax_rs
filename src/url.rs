@@ -16,7 +16,7 @@ struct AttributeValue {
 }
 
 impl Route {
-    pub fn new() -> Route {
+    pub fn new() -> Self {
         Route::default()
     }
 

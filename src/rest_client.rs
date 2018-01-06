@@ -1,6 +1,8 @@
 use std::str::FromStr;
 use std::fmt::Display;
-use serde::de::{Deserialize, Deserializer, Error};
+//use std::io::Error;
+//use serde::de::{Deserialize, Deserializer, Error};
+use serde::de;
 use hyper::{Body, Client, Method, Request};
 use hyper::header::{ContentLength, UserAgent};
 use hyper::client::HttpConnector;
@@ -9,6 +11,7 @@ use tokio_core::reactor::Core;
 use futures::{Future, Stream};
 
 use url::Route;
+use error::RestError;
 
 pub struct RESTClient {
     api_url: String,
@@ -17,35 +20,35 @@ pub struct RESTClient {
 }
 
 impl RESTClient {
-    pub fn new(api_url: &str) -> RESTClient {
-        let core = Core::new().unwrap();
+    pub fn new(api_url: &str) -> Result<Self, RestError> {
+        let core = Core::new().or_else(|e| Err(RestError::CoreError(e)))?;
         let handle = core.handle();
-        let connector = HttpsConnector::new(4, &handle).unwrap();
+        let connector = HttpsConnector::new(4, &handle)
+            .or_else(|e| Err(RestError::HttpsConnectorError(format!("{}", e))))?;
         let client = Client::configure().connector(connector).build(&handle);
-
-        RESTClient {
+        Ok(RESTClient {
             api_url: String::from(api_url),
             core,
             client,
-        }
+        })
     }
 
     // TODO: Remove the https part from the url
     /// Returns the default APIConnector (connected to the staging API)
     pub fn default() -> RESTClient {
-        RESTClient::new("https://api.gdax.com")
+        RESTClient::new("https://api.gdax.com").unwrap()
     }
 
     /// Returns the sandbox APIConnector (connected to the staging API)
     pub fn sandbox() -> RESTClient {
-        RESTClient::new("https://api-public.sandbox.gdax.com")
+        RESTClient::new("https://api-public.sandbox.gdax.com").unwrap()
     }
 
-    fn send_http_request(&mut self, request: &EndPointRequest) -> String {
+    fn send_http_request(&mut self, request: &EndPointRequest) -> Result<String, RestError> {
         // create the full request uri
         let uri = format!("{}{}", self.api_url, request.route.to_string())
             .parse()
-            .unwrap();
+            .or(Err(RestError::NotImplemented))?;
 
         // create request
         let mut req = Request::new(request.http_method.clone(), uri);
@@ -60,11 +63,19 @@ impl RESTClient {
             .request(req)
             .and_then(|res| res.body().concat2());
 
-        String::from_utf8(self.core.run(work).unwrap().to_vec()).unwrap()
+        let request_result = self.core.run(work).or(Err(RestError::NotImplemented))?;
+        let result = String::from_utf8(request_result.to_vec()).or(Err(RestError::NotImplemented))?;
+
+        Ok(result)
     }
 
-    pub fn request<T>(&mut self, request_handler: &EndPointRequestHandler<T>) -> T {
-        request_handler.deserialize(self.send_http_request(&request_handler.create_request()))
+    pub fn request<T>(
+        &mut self,
+        request_handler: &EndPointRequestHandler<T>,
+    ) -> Result<T, RestError> {
+        let http_result = self.send_http_request(&request_handler.create_request())
+            .or(Err(RestError::NotImplemented))?;
+        request_handler.deserialize(http_result)
     }
 }
 
@@ -80,7 +91,7 @@ pub trait EndPointRequestHandler<T> {
     fn create_request(&self) -> EndPointRequest;
     // TODO : ref or not?
     // TODO : Handle error
-    fn deserialize(&self, http_body: String) -> T;
+    fn deserialize(&self, http_body: String) -> Result<T, RestError>;
 }
 
 /// Gdax return the floats values as strings, we need ti use the `FromStr` trait to
@@ -91,10 +102,10 @@ pub fn deserialize_from_str<'de, S, D>(deserializer: D) -> Result<S, D::Error>
 where
     S: FromStr,
     S::Err: Display,
-    D: Deserializer<'de>,
+    D: de::Deserializer<'de>,
 {
-    let s: String = Deserialize::deserialize(deserializer)?;
-    S::from_str(&s).map_err(Error::custom)
+    let s: String = de::Deserialize::deserialize(deserializer)?;
+    S::from_str(&s).map_err(de::Error::custom)
 }
 
 #[cfg(test)]
@@ -103,6 +114,7 @@ mod tests {
     use hyper::Method;
 
     use super::{EndPointRequest, EndPointRequestHandler, RESTClient, Route};
+    use error::RestError;
 
     struct FakeRequestHandler;
 
@@ -119,10 +131,9 @@ mod tests {
             }
         }
 
-        fn deserialize(&self, http_body: String) -> FakeAnswerType {
-            FakeAnswerType {
-                value: http_body.parse().unwrap(),
-            }
+        fn deserialize(&self, http_body: String) -> Result<FakeAnswerType, RestError> {
+            let value = http_body.parse().or(Err(RestError::NotImplemented))?;
+            Ok(FakeAnswerType { value })
         }
     }
 
@@ -130,9 +141,9 @@ mod tests {
     fn test_fake_request() {
         let _m = mock("GET", "/test").with_body("1").create();
 
-        let mut test_client = RESTClient::new(SERVER_URL);
+        let mut test_client = RESTClient::new(SERVER_URL).unwrap();
         let request = FakeRequestHandler {};
 
-        assert_eq!(test_client.request(&request).value, 1);
+        assert_eq!(test_client.request(&request).unwrap().value, 1);
     }
 }

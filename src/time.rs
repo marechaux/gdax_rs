@@ -4,12 +4,13 @@ use chrono::{DateTime, Utc};
 
 use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
+use error::RestError;
 
 #[derive(Default)]
 pub struct GetTime;
 
 impl GetTime {
-    pub fn new() -> GetTime {
+    pub fn new() -> Self {
         GetTime::default()
     }
 }
@@ -29,8 +30,8 @@ impl EndPointRequestHandler<Time> for GetTime {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Time {
-        serde_json::from_str(&http_body).unwrap()
+    fn deserialize(&self, http_body: String) -> Result<Time, RestError> {
+        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
     }
 }
 
@@ -56,12 +57,14 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetTime::new().deserialize(String::from(
-            "{
+        let result = GetTime::new()
+            .deserialize(String::from(
+                "{
     \"iso\": \"2015-01-07T23:47:25.201Z\",
     \"epoch\": 1420674445.201
 }",
-        ));
+            ))
+            .unwrap();
         let expected = Time {
             iso: Utc.ymd(2015, 1, 7).and_hms_micro(23, 47, 25, 201_000),
             epoch: 1420674445.201,
