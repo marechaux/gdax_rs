@@ -1,10 +1,8 @@
 use chrono::{DateTime, Utc};
-use serde_json;
 use hyper::Method;
 
 use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
-use error::RestError;
 
 pub struct GetHistoricRates {
     product_id: String,
@@ -55,10 +53,10 @@ impl EndPointRequestHandler<Vec<Candle>> for GetHistoricRates {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Result<Vec<Candle>, RestError> {
-        println!("body : \"{}\"", &http_body);
-        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    }
+    //    fn deserialize(&self, http_body: String) -> Result<Vec<Candle>, RestError> {
+    //        println!("body : \"{}\"", &http_body);
+    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
+    //    }
 }
 
 #[cfg(test)]
@@ -99,7 +97,7 @@ mod tests {
             Utc.ymd(2014, 11, 07).and_hms_micro(22, 19, 28, 578_544),
             Utc.ymd(2014, 11, 07).and_hms_micro(22, 20, 28, 1),
             1,
-        ).deserialize(String::from(
+        ).deserialize(&String::from(
             "[
     [ 1415398768, 0.32, 4.2, 0.35, 4.2, 12.3 ],
     [ 1415398769, 0.33, 4.3, 0.36, 4.2, 12.3 ]

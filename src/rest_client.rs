@@ -3,6 +3,7 @@ use std::fmt::Display;
 //use std::io::Error;
 //use serde::de::{Deserialize, Deserializer, Error};
 use serde::de;
+use serde_json;
 use hyper::{Body, Client, Method, Request};
 use hyper::header::{ContentLength, UserAgent};
 use hyper::client::HttpConnector;
@@ -12,6 +13,7 @@ use futures::{Future, Stream};
 
 use url::Route;
 use error::RestError;
+use error::ParseError;
 
 pub struct RESTClient {
     api_url: String,
@@ -69,13 +71,13 @@ impl RESTClient {
         Ok(result)
     }
 
-    pub fn request<T>(
+    pub fn request<T: de::DeserializeOwned>(
         &mut self,
         request_handler: &EndPointRequestHandler<T>,
     ) -> Result<T, RestError> {
         let http_result = self.send_http_request(&request_handler.create_request())
             .or(Err(RestError::NotImplemented))?;
-        request_handler.deserialize(http_result)
+        request_handler.deserialize(&http_result)
     }
 }
 
@@ -87,11 +89,13 @@ pub struct EndPointRequest {
     pub body: String,
 }
 
-pub trait EndPointRequestHandler<T> {
+/// TODO: doc
+pub trait EndPointRequestHandler<T: de::DeserializeOwned> {
     fn create_request(&self) -> EndPointRequest;
-    // TODO : ref or not?
-    // TODO : Handle error
-    fn deserialize(&self, http_body: String) -> Result<T, RestError>;
+    fn deserialize(&self, http_body: &String) -> Result<T, RestError> {
+        serde_json::from_str(http_body)
+            .map_err(|e| RestError::ParseError(ParseError::new(http_body.clone(), e.to_string())))
+    }
 }
 
 /// Gdax return the floats values as strings, we need ti use the `FromStr` trait to
@@ -114,10 +118,10 @@ mod tests {
     use hyper::Method;
 
     use super::{EndPointRequest, EndPointRequestHandler, RESTClient, Route};
-    use error::RestError;
 
     struct FakeRequestHandler;
 
+    #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct FakeAnswerType {
         value: i64, // this value could be used to test
     }
@@ -130,16 +134,11 @@ mod tests {
                 body: String::from(""),
             }
         }
-
-        fn deserialize(&self, http_body: String) -> Result<FakeAnswerType, RestError> {
-            let value = http_body.parse().or(Err(RestError::NotImplemented))?;
-            Ok(FakeAnswerType { value })
-        }
     }
 
     #[test]
     fn test_fake_request() {
-        let _m = mock("GET", "/test").with_body("1").create();
+        let _m = mock("GET", "/test").with_body("{\"value\": 1}").create();
 
         let mut test_client = RESTClient::new(SERVER_URL).unwrap();
         let request = FakeRequestHandler {};

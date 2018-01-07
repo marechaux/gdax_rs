@@ -1,10 +1,8 @@
 use hyper::Method;
-use serde_json;
 use chrono::{DateTime, Utc};
 
 use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
-use error::RestError;
 
 pub struct GetProductTicker {
     product_id: String,
@@ -39,9 +37,9 @@ impl EndPointRequestHandler<Ticker> for GetProductTicker {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Result<Ticker, RestError> {
-        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    }
+    //    fn deserialize(&self, http_body: String) -> Result<Ticker, RestError> {
+    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
+    //    }
 }
 
 #[cfg(test)]
@@ -69,7 +67,7 @@ mod tests {
     #[test]
     fn test_deserialize() {
         let result = GetProductTicker::new(String::from("BTC-USD"))
-            .deserialize(String::from(
+            .deserialize(&String::from(
                 "\
 {
   \"trade_id\": 4729088,

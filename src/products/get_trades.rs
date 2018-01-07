@@ -1,11 +1,9 @@
 // TODO : handle pagination
 use chrono::{DateTime, Utc};
 use hyper::Method;
-use serde_json;
 
 use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
-use error::RestError;
 
 pub struct GetTrades {
     product_id: String,
@@ -44,9 +42,9 @@ impl EndPointRequestHandler<Vec<Trade>> for GetTrades {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Result<Vec<Trade>, RestError> {
-        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    }
+    //    fn deserialize(&self, http_body: String) -> Result<Vec<Trade>, RestError> {
+    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
+    //    }
 }
 
 #[cfg(test)]
@@ -73,7 +71,7 @@ mod tests {
     #[test]
     fn test_deserialize() {
         let result = GetTrades::new(String::from("BTC-USD"))
-            .deserialize(String::from(
+            .deserialize(&String::from(
                 "\
 [{
     \"time\": \"2014-11-07T22:19:28.578544Z\",

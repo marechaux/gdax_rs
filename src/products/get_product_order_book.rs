@@ -1,9 +1,7 @@
 use hyper::Method;
-use serde_json;
 
 use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
 use url::Route;
-use error::RestError;
 
 #[derive(Copy, Clone)]
 pub enum Level {
@@ -52,9 +50,9 @@ impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
         }
     }
 
-    fn deserialize(&self, http_body: String) -> Result<OrderBook<PriceLevel>, RestError> {
-        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    }
+    //    fn deserialize(&self, http_body: String) -> Result<OrderBook<PriceLevel>, RestError> {
+    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
+    //    }
 }
 
 #[cfg(test)]
@@ -84,7 +82,7 @@ mod tests {
     fn test_deserialize() {
         let request_handler = GetProductOrderBook::new(String::from("BTC-USD"), Level::Level2);
         let result = request_handler
-            .deserialize(String::from(
+            .deserialize(&&String::from(
                 "
 {
     \"sequence\": 3,
