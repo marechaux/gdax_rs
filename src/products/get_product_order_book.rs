@@ -1,6 +1,7 @@
 use hyper::Method;
 
-use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
+use serde_util::deserialize_from_str;
+use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
 
 #[derive(Copy, Clone)]
@@ -18,7 +19,7 @@ pub struct GetProductOrderBook {
 }
 
 impl GetProductOrderBook {
-    pub fn new(product_id: String, level: Level) -> Self {
+    pub fn new(product_id: String, level: Level) -> GetProductOrderBook {
         GetProductOrderBook { product_id, level }
     }
 }
@@ -49,10 +50,6 @@ impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
             body: String::new(),
         }
     }
-
-    //    fn deserialize(&self, http_body: String) -> Result<OrderBook<PriceLevel>, RestError> {
-    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    //    }
 }
 
 #[cfg(test)]

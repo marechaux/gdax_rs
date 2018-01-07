@@ -18,7 +18,7 @@ impl GetHistoricRates {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
         granularity: i64,
-    ) -> Self {
+    ) -> GetHistoricRates {
         GetHistoricRates {
             product_id,
             start,
@@ -52,11 +52,6 @@ impl EndPointRequestHandler<Vec<Candle>> for GetHistoricRates {
             body: String::new(),
         }
     }
-
-    //    fn deserialize(&self, http_body: String) -> Result<Vec<Candle>, RestError> {
-    //        println!("body : \"{}\"", &http_body);
-    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    //    }
 }
 
 #[cfg(test)]

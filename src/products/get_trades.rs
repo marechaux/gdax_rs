@@ -2,7 +2,8 @@
 use chrono::{DateTime, Utc};
 use hyper::Method;
 
-use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
+use serde_util::deserialize_from_str;
+use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
 
 pub struct GetTrades {
@@ -10,7 +11,7 @@ pub struct GetTrades {
 }
 
 impl GetTrades {
-    pub fn new(product_id: String) -> Self {
+    pub fn new(product_id: String) -> GetTrades {
         GetTrades { product_id }
     }
 }
@@ -41,10 +42,6 @@ impl EndPointRequestHandler<Vec<Trade>> for GetTrades {
             body: String::new(),
         }
     }
-
-    //    fn deserialize(&self, http_body: String) -> Result<Vec<Trade>, RestError> {
-    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    //    }
 }
 
 #[cfg(test)]

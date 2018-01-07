@@ -1,7 +1,8 @@
 use hyper::Method;
 use chrono::{DateTime, Utc};
 
-use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
+use serde_util::deserialize_from_str;
+use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
 
 pub struct GetProductTicker {
@@ -9,7 +10,7 @@ pub struct GetProductTicker {
 }
 
 impl GetProductTicker {
-    pub fn new(product_id: String) -> Self {
+    pub fn new(product_id: String) -> GetProductTicker {
         GetProductTicker { product_id }
     }
 }
@@ -36,10 +37,6 @@ impl EndPointRequestHandler<Ticker> for GetProductTicker {
             body: String::new(),
         }
     }
-
-    //    fn deserialize(&self, http_body: String) -> Result<Ticker, RestError> {
-    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    //    }
 }
 
 #[cfg(test)]

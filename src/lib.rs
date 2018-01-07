@@ -17,4 +17,5 @@ pub mod time;
 mod url;
 mod rest_client;
 mod error;
+mod serde_util;
 pub use rest_client::RESTClient;

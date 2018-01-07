@@ -8,7 +8,7 @@ use url::Route;
 pub struct GetTime;
 
 impl GetTime {
-    pub fn new() -> Self {
+    pub fn new() -> GetTime {
         GetTime::default()
     }
 }
@@ -27,11 +27,6 @@ impl EndPointRequestHandler<Time> for GetTime {
             body: String::new(),
         }
     }
-
-    //    fn deserialize(&self, http_body: String) -> Result<Time, RestError> {
-    //        serde_json::from_str(&http_body)
-    //            .map_err(|e| RestError::ParseError(ParseError::new(http_body, e.to_string())))
-    //    }
 }
 
 #[cfg(test)]

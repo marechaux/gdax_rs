@@ -1,6 +1,7 @@
 use hyper::Method;
 
-use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
+use serde_util::deserialize_from_str;
+use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
 
 pub struct Get24hrStats {
@@ -8,7 +9,7 @@ pub struct Get24hrStats {
 }
 
 impl Get24hrStats {
-    pub fn new(product_id: String) -> Self {
+    pub fn new(product_id: String) -> Get24hrStats {
         Get24hrStats { product_id }
     }
 }
@@ -31,10 +32,6 @@ impl EndPointRequestHandler<Stats> for Get24hrStats {
             body: String::new(),
         }
     }
-
-    //    fn deserialize(&self, http_body: String) -> Result<Stats, RestError> {
-    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    //    }
 }
 
 #[cfg(test)]

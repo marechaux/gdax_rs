@@ -1,13 +1,15 @@
 use hyper::Method;
 
-use rest_client::{deserialize_from_str, EndPointRequest, EndPointRequestHandler};
+use serde_util::deserialize_from_str;
+use rest_client::{EndPointRequest, EndPointRequestHandler};
 use url::Route;
 
+/// This struct represent the public end point *Get Products* (<https://docs.gdax.com/#get-products>)
 #[derive(Default)]
 pub struct GetProducts;
 
 impl GetProducts {
-    pub fn new() -> Self {
+    pub fn new() -> GetProducts {
         GetProducts::default()
     }
 }
@@ -31,10 +33,6 @@ impl EndPointRequestHandler<Vec<Product>> for GetProducts {
             body: String::new(),
         }
     }
-
-    //    fn deserialize(&self, http_body: String) -> Result<Vec<Product>, RestError> {
-    //        serde_json::from_str(&http_body).or(Err(RestError::NotImplemented))
-    //    }
 }
 
 #[cfg(test)]
