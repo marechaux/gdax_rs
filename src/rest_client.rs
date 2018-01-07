@@ -13,7 +13,7 @@ use error::ParseError;
 
 const PUBLIC_API: &str = "https://api.gdax.com";
 const SANDBOX_API: &str = "https://api-public.sandbox.gdax.com";
-const USER_AGENT: &str = concat!("rusty_gdax/", env!("CARGO_PKG_VERSION"));
+const USER_AGENT: &str = concat!("gdax_rs/", env!("CARGO_PKG_VERSION"));
 
 pub struct RESTClient {
     api_url: String,

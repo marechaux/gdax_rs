@@ -1,7 +1,7 @@
-extern crate rusty_gdax;
+extern crate gdax_rs;
 
-use rusty_gdax::RESTClient;
-use rusty_gdax::products::GetProductTicker;
+use gdax_rs::RESTClient;
+use gdax_rs::products::GetProductTicker;
 
 fn main() {
     let mut test_client = RESTClient::default();

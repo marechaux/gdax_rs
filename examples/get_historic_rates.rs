@@ -1,10 +1,10 @@
 extern crate chrono;
-extern crate rusty_gdax;
+extern crate gdax_rs;
 
 use chrono::{TimeZone, Utc};
 
-use rusty_gdax::RESTClient;
-use rusty_gdax::products::GetHistoricRates;
+use gdax_rs::RESTClient;
+use gdax_rs::products::GetHistoricRates;
 
 fn main() {
     let mut test_client = RESTClient::default();

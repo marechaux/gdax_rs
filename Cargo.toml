@@ -1,5 +1,5 @@
 [package]
-name = "rusty_gdax"
+name = "gdax_rs"
 version = "0.1.0"
 authors = ["Tristan Marechaux <marechaux5@gmail.com>"]
 
