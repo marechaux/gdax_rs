@@ -1,7 +1,10 @@
+//! This module contains all `EndPointRequest` and there response type of GDAX API doc under
+//! "Market Data/Time" section (<https://docs.gdax.com/#time>)
+
 use hyper::Method;
 use chrono::{DateTime, Utc};
 
-use rest_client::{EndPointRequest, EndPointRequestHandler};
+use rest_client::{EndPointRequest, RestRequest};
 use url::Route;
 
 #[derive(Default)]
@@ -19,9 +22,9 @@ pub struct Time {
     epoch: f64,
 }
 
-impl EndPointRequestHandler<Time> for GetTime {
-    fn create_request(&self) -> EndPointRequest {
-        EndPointRequest {
+impl EndPointRequest<Time> for GetTime {
+    fn create_request(&self) -> RestRequest {
+        RestRequest {
             http_method: Method::Get,
             route: Route::new().add_segment(&"time"),
             body: String::new(),
@@ -33,14 +36,15 @@ impl EndPointRequestHandler<Time> for GetTime {
 mod tests {
     use chrono::{TimeZone, Utc};
     use hyper::Method;
+    use serde_json;
 
-    use super::{EndPointRequest, EndPointRequestHandler, GetTime, Route, Time};
+    use super::{EndPointRequest, GetTime, RestRequest, Route, Time};
 
     #[test]
     fn test_create_request() {
         let result = GetTime::new().create_request();
 
-        let expected = EndPointRequest {
+        let expected = RestRequest {
             http_method: Method::Get,
             route: Route::new().add_segment(&"time"),
             body: String::new(),
@@ -51,14 +55,12 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetTime::new()
-            .deserialize(&String::from(
-                "{
+        let result: Time = serde_json::from_str(
+            "{
     \"iso\": \"2015-01-07T23:47:25.201Z\",
     \"epoch\": 1420674445.201
 }",
-            ))
-            .unwrap();
+        ).unwrap();
         let expected = Time {
             iso: Utc.ymd(2015, 1, 7).and_hms_micro(23, 47, 25, 201_000),
             epoch: 1420674445.201,

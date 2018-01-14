@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use hyper::Method;
 
-use rest_client::{EndPointRequest, EndPointRequestHandler};
+use rest_client::{EndPointRequest, RestRequest};
 use url::Route;
 
 pub struct GetHistoricRates {
@@ -38,9 +38,9 @@ pub struct Candle {
     volume: f64,
 }
 
-impl EndPointRequestHandler<Vec<Candle>> for GetHistoricRates {
-    fn create_request(&self) -> EndPointRequest {
-        EndPointRequest {
+impl EndPointRequest<Vec<Candle>> for GetHistoricRates {
+    fn create_request(&self) -> RestRequest {
+        RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -58,8 +58,9 @@ impl EndPointRequestHandler<Vec<Candle>> for GetHistoricRates {
 mod tests {
     use hyper::Method;
     use chrono::{TimeZone, Utc};
+    use serde_json;
 
-    use super::{Candle, EndPointRequest, EndPointRequestHandler, GetHistoricRates, Route};
+    use super::{Candle, EndPointRequest, GetHistoricRates, RestRequest, Route};
 
     #[test]
     fn test_create_request() {
@@ -70,7 +71,7 @@ mod tests {
             1,
         ).create_request();
 
-        let expected = EndPointRequest {
+        let expected = RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -87,18 +88,12 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetHistoricRates::new(
-            String::from("BTC-USD"),
-            Utc.ymd(2014, 11, 07).and_hms_micro(22, 19, 28, 578_544),
-            Utc.ymd(2014, 11, 07).and_hms_micro(22, 20, 28, 1),
-            1,
-        ).deserialize(&String::from(
+        let result: Vec<Candle> = serde_json::from_str(
             "[
     [ 1415398768, 0.32, 4.2, 0.35, 4.2, 12.3 ],
     [ 1415398769, 0.33, 4.3, 0.36, 4.2, 12.3 ]
 ]",
-        ))
-            .unwrap();
+        ).unwrap();
         let expected = vec![
             Candle {
                 time: 1415398768,

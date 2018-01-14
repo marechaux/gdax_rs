@@ -2,9 +2,11 @@ use hyper::Method;
 use chrono::{DateTime, Utc};
 
 use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, EndPointRequestHandler};
+use rest_client::{EndPointRequest, RestRequest};
 use url::Route;
 
+/// This struct represents the `Get Product Ticker` end point.
+/// <https://docs.gdax.com/#get-product-ticker>
 pub struct GetProductTicker {
     product_id: String,
 }
@@ -15,6 +17,7 @@ impl GetProductTicker {
     }
 }
 
+///
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Ticker {
     trade_id: i64,
@@ -26,9 +29,9 @@ pub struct Ticker {
     time: DateTime<Utc>,
 }
 
-impl EndPointRequestHandler<Ticker> for GetProductTicker {
-    fn create_request(&self) -> EndPointRequest {
-        EndPointRequest {
+impl EndPointRequest<Ticker> for GetProductTicker {
+    fn create_request(&self) -> RestRequest {
+        RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -43,13 +46,14 @@ impl EndPointRequestHandler<Ticker> for GetProductTicker {
 mod tests {
     use chrono::{TimeZone, Utc};
     use hyper::Method;
+    use serde_json;
 
-    use super::{EndPointRequest, EndPointRequestHandler, GetProductTicker, Route, Ticker};
+    use super::{EndPointRequest, GetProductTicker, RestRequest, Route, Ticker};
 
     #[test]
     fn test_create_request() {
         let result = GetProductTicker::new(String::from("BTC-USD")).create_request();
-        let expected = EndPointRequest {
+        let expected = RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -63,9 +67,8 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetProductTicker::new(String::from("BTC-USD"))
-            .deserialize(&String::from(
-                "\
+        let result: Ticker = serde_json::from_str(
+            "\
 {
   \"trade_id\": 4729088,
   \"price\": \"333.99\",
@@ -76,8 +79,7 @@ mod tests {
   \"time\": \"2015-11-14T20:46:03.511254Z\"
 }
             ",
-            ))
-            .unwrap();
+        ).unwrap();
 
         let expected = Ticker {
             trade_id: 4729088,

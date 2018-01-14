@@ -1,21 +1,22 @@
 use hyper::Method;
 
 use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, EndPointRequestHandler};
+use rest_client::{EndPointRequest, RestRequest};
 use url::Route;
 
+/// This struct represent the endpoint `Get Product Order Book` <https://docs.gdax.com/#get-product-order-book>
+/// (The level 3 requests are not implemented)
+pub struct GetProductOrderBook {
+    pub product_id: String,
+    pub level: Level,
+}
+
+/// This enum represents the order book possible levels to request.
 #[derive(Copy, Clone)]
 pub enum Level {
     Level1 = 1,
     Level2 = 2,
     Level3 = 3, // TODO: Handle level 3 (with enum)
-}
-
-// TODO Make field private and create a constructor
-pub struct GetProductOrderBook {
-    /// Endpoint from https://docs.gdax.com/#get-product-order-book
-    pub product_id: String,
-    pub level: Level,
 }
 
 impl GetProductOrderBook {
@@ -38,9 +39,9 @@ pub struct PriceLevel {
     pub num_order: i64, // This one could be an enum to handle both case
 }
 
-impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
-    fn create_request(&self) -> EndPointRequest {
-        EndPointRequest {
+impl EndPointRequest<OrderBook<PriceLevel>> for GetProductOrderBook {
+    fn create_request(&self) -> RestRequest {
+        RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -55,15 +56,16 @@ impl EndPointRequestHandler<OrderBook<PriceLevel>> for GetProductOrderBook {
 #[cfg(test)]
 mod tests {
     use hyper::Method;
+    use serde_json;
 
-    use super::{EndPointRequest, EndPointRequestHandler, GetProductOrderBook, Level, OrderBook,
-                PriceLevel, Route};
+    use super::{EndPointRequest, GetProductOrderBook, Level, OrderBook, PriceLevel, RestRequest,
+                Route};
 
     #[test]
     fn test_create_request() {
         let request_handler = GetProductOrderBook::new(String::from("BTC-USD"), Level::Level2);
         let result = request_handler.create_request();
-        let expected = EndPointRequest {
+        let expected = RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -77,10 +79,8 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let request_handler = GetProductOrderBook::new(String::from("BTC-USD"), Level::Level2);
-        let result = request_handler
-            .deserialize(&&String::from(
-                "
+        let result: OrderBook<PriceLevel> = serde_json::from_str(
+            "
 {
     \"sequence\": 3,
     \"bids\": [
@@ -94,8 +94,7 @@ mod tests {
     ]
 }
         ",
-            ))
-            .unwrap();
+        ).unwrap();
         let expected = OrderBook {
             sequence: 3,
             bids: vec![

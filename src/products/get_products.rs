@@ -1,10 +1,10 @@
 use hyper::Method;
 
 use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, EndPointRequestHandler};
+use rest_client::{EndPointRequest, RestRequest};
 use url::Route;
 
-/// This struct represent the public end point *Get Products* (<https://docs.gdax.com/#get-products>)
+/// This struct is the request handler
 #[derive(Default)]
 pub struct GetProducts;
 
@@ -15,6 +15,7 @@ impl GetProducts {
 }
 
 // TODO: use builder pattern instead of pub field?
+/// This struct represent the response of GDAX API, each field of the json are parsed.
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Product {
     pub id: String,
@@ -25,9 +26,9 @@ pub struct Product {
     #[serde(deserialize_with = "deserialize_from_str")] pub quote_increment: f64,
 }
 
-impl EndPointRequestHandler<Vec<Product>> for GetProducts {
-    fn create_request(&self) -> EndPointRequest {
-        EndPointRequest {
+impl EndPointRequest<Vec<Product>> for GetProducts {
+    fn create_request(&self) -> RestRequest {
+        RestRequest {
             http_method: Method::Get,
             route: Route::new().add_segment(&"/products"),
             body: String::new(),
@@ -38,14 +39,15 @@ impl EndPointRequestHandler<Vec<Product>> for GetProducts {
 #[cfg(test)]
 mod tests {
     use hyper::Method;
+    use serde_json;
 
-    use super::{EndPointRequest, EndPointRequestHandler, GetProducts, Product, Route};
+    use super::{EndPointRequest, GetProducts, Product, RestRequest, Route};
 
     #[test]
     fn test_create_request() {
         let handler = GetProducts::new();
 
-        let expected = EndPointRequest {
+        let expected = RestRequest {
             http_method: Method::Get,
             route: Route::new().add_segment(&"/products"),
             body: String::new(),
@@ -56,9 +58,8 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetProducts
-            .deserialize(&String::from(
-                "
+        let result: Vec<Product> = serde_json::from_str(
+            "
 [
     {
         \"id\": \"BTC-USD\",
@@ -70,8 +71,7 @@ mod tests {
     }
 ]
         ",
-            ))
-            .unwrap();
+        ).unwrap();
         let expected: Vec<Product> = vec![
             Product {
                 id: String::from("BTC-USD"),

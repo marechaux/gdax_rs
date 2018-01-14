@@ -1,7 +1,7 @@
 use hyper::Method;
 
 use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, EndPointRequestHandler};
+use rest_client::{EndPointRequest, RestRequest};
 use url::Route;
 
 pub struct Get24hrStats {
@@ -21,9 +21,9 @@ pub struct Stats {
     #[serde(deserialize_with = "deserialize_from_str")] volume: f64,
 }
 
-impl EndPointRequestHandler<Stats> for Get24hrStats {
-    fn create_request(&self) -> EndPointRequest {
-        EndPointRequest {
+impl EndPointRequest<Stats> for Get24hrStats {
+    fn create_request(&self) -> RestRequest {
+        RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -36,14 +36,15 @@ impl EndPointRequestHandler<Stats> for Get24hrStats {
 
 #[cfg(test)]
 mod tests {
+    use serde_json;
 
-    use super::{EndPointRequest, EndPointRequestHandler, Get24hrStats, Method, Route, Stats};
+    use super::{EndPointRequest, Get24hrStats, Method, RestRequest, Route, Stats};
 
     #[test]
     fn test_create_request() {
         let result = Get24hrStats::new(String::from("BTC-USD")).create_request();
 
-        let expected = EndPointRequest {
+        let expected = RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -57,16 +58,14 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = Get24hrStats::new(String::from("BTC-USD"))
-            .deserialize(&String::from(
-                "{
+        let result: Stats = serde_json::from_str(
+            "{
     \"open\": \"34.19000000\",
     \"high\": \"95.70000000\",
     \"low\": \"7.06000000\",
     \"volume\": \"2.41000000\"
 }",
-            ))
-            .unwrap();
+        ).unwrap();
         let expected = Stats {
             open: 34.19,
             high: 95.7,

@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use hyper::Method;
 
 use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, EndPointRequestHandler};
+use rest_client::{EndPointRequest, RestRequest};
 use url::Route;
 
 pub struct GetTrades {
@@ -31,9 +31,9 @@ pub struct Trade {
     side: Side,
 }
 
-impl EndPointRequestHandler<Vec<Trade>> for GetTrades {
-    fn create_request(&self) -> EndPointRequest {
-        EndPointRequest {
+impl EndPointRequest<Vec<Trade>> for GetTrades {
+    fn create_request(&self) -> RestRequest {
+        RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -47,13 +47,14 @@ impl EndPointRequestHandler<Vec<Trade>> for GetTrades {
 #[cfg(test)]
 mod tests {
     use chrono::{TimeZone, Utc};
+    use serde_json;
 
-    use super::{EndPointRequest, EndPointRequestHandler, GetTrades, Method, Route, Side, Trade};
+    use super::{EndPointRequest, GetTrades, Method, RestRequest, Route, Side, Trade};
 
     #[test]
     fn test_create_request() {
         let result = GetTrades::new(String::from("BTC-USD")).create_request();
-        let expected = EndPointRequest {
+        let expected = RestRequest {
             http_method: Method::Get,
             route: Route::new()
                 .add_segment(&"products")
@@ -67,9 +68,8 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let result = GetTrades::new(String::from("BTC-USD"))
-            .deserialize(&String::from(
-                "\
+        let result: Vec<Trade> = serde_json::from_str(
+            "\
 [{
     \"time\": \"2014-11-07T22:19:28.578544Z\",
     \"trade_id\": 74,
@@ -83,8 +83,7 @@ mod tests {
     \"size\": \"0.01000000\",
     \"side\": \"sell\"
 }]",
-            ))
-            .unwrap();
+        ).unwrap();
         let expected = vec![
             Trade {
                 time: Utc.ymd(2014, 11, 07).and_hms_micro(22, 19, 28, 578_544),

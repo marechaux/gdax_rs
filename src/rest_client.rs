@@ -47,7 +47,12 @@ impl RESTClient {
         RESTClient::new(SANDBOX_API).unwrap()
     }
 
-    fn send_http_request(&mut self, request: &EndPointRequest) -> Result<String, RestError> {
+    fn send_http_request<T: de::DeserializeOwned>(
+        &mut self,
+        request_handler: &EndPointRequest<T>,
+    ) -> Result<T, RestError> {
+        let request = request_handler.create_request();
+
         // create the full request uri
         let uri: Uri = format!("{}{}", self.api_url, request.route.to_string()).parse()?;
 
@@ -60,52 +65,53 @@ impl RESTClient {
         // set the user agent (required by the API)
         req.headers_mut().set(UserAgent::new(USER_AGENT));
 
-        let work = self.client
-            .request(req)
-            .and_then(|res| res.body().concat2());
+        let work = self.client.request(req).and_then(|res| {
+            res.body().concat2().and_then(move |body| {
+                Ok(serde_json::from_slice(&body).map_err(|e| {
+                    match String::from_utf8(body.to_vec()) {
+                        Ok(http_body) => {
+                            RestError::ParseError(ParseError::new(http_body, e.to_string()))
+                        }
+                        Err(e) => RestError::from(e),
+                    }
+                }))
+            })
+        });
 
-        let request_result = self.core.run(work)?;
-        let result = String::from_utf8(request_result.to_vec())?;
-
-        Ok(result)
+        self.core.run(work)?
     }
 
     /// This method send a request to GDAX API and return the result as an struct `T`
     pub fn request<T: de::DeserializeOwned>(
         &mut self,
-        request_handler: &EndPointRequestHandler<T>,
+        request_handler: &EndPointRequest<T>,
     ) -> Result<T, RestError> {
-        let http_result = self.send_http_request(&request_handler.create_request())?;
-        request_handler.deserialize(&http_result)
+        self.send_http_request(request_handler)
     }
 }
 
 // TODO Should this be public?
 #[derive(PartialEq, Debug)]
-pub struct EndPointRequest {
+pub struct RestRequest {
     pub http_method: Method,
     pub route: Route,
     pub body: String,
 }
 
 // TODO : Should it be public?
-/// A struct that implement the trait `EndPointRequestHandler` is capable of creating generate a
+/// A struct that implement the trait `EndPointRequest` is capable of creating generate a
 /// request and parse the result.
-pub trait EndPointRequestHandler<T: de::DeserializeOwned> {
-    fn create_request(&self) -> EndPointRequest;
-    fn deserialize(&self, http_body: &str) -> Result<T, RestError> {
-        serde_json::from_str(http_body).map_err(|e| {
-            RestError::ParseError(ParseError::new(String::from(http_body), e.to_string()))
-        })
-    }
+pub trait EndPointRequest<T: de::DeserializeOwned> {
+    fn create_request(&self) -> RestRequest;
 }
 
+// TODO: test error handling!
 #[cfg(test)]
 mod tests {
     use mockito::{mock, SERVER_URL};
     use hyper::Method;
 
-    use super::{EndPointRequest, EndPointRequestHandler, RESTClient, Route};
+    use super::{EndPointRequest, RESTClient, RestRequest, Route};
 
     struct FakeRequestHandler;
 
@@ -114,9 +120,9 @@ mod tests {
         value: i64, // this value could be used to test
     }
 
-    impl EndPointRequestHandler<FakeAnswerType> for FakeRequestHandler {
-        fn create_request(&self) -> EndPointRequest {
-            EndPointRequest {
+    impl EndPointRequest<FakeAnswerType> for FakeRequestHandler {
+        fn create_request(&self) -> RestRequest {
+            RestRequest {
                 http_method: Method::Get,
                 route: Route::new().add_segment(&"test"),
                 body: String::from(""),
