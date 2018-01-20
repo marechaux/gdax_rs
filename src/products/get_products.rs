@@ -21,9 +21,12 @@ pub struct Product {
     pub id: String,
     pub base_currency: String,
     pub quote_currency: String,
-    #[serde(deserialize_with = "deserialize_from_str")] pub base_min_size: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] pub base_max_size: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] pub quote_increment: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    pub base_min_size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    pub base_max_size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    pub quote_increment: f64,
 }
 
 impl EndPointRequest<Vec<Product>> for GetProducts {

@@ -20,7 +20,8 @@ impl GetCurrencies {
 pub struct Currency {
     id: String,
     name: String,
-    #[serde(deserialize_with = "deserialize_from_str")] min_size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    min_size: f64,
 }
 
 impl EndPointRequest<Vec<Currency>> for GetCurrencies {

@@ -21,11 +21,16 @@ impl GetProductTicker {
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Ticker {
     trade_id: i64,
-    #[serde(deserialize_with = "deserialize_from_str")] price: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] size: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] bid: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] ask: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] volume: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    price: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    bid: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    ask: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    volume: f64,
     time: DateTime<Utc>,
 }
 

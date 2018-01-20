@@ -34,8 +34,10 @@ pub struct OrderBook<T> {
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct PriceLevel {
-    #[serde(deserialize_with = "deserialize_from_str")] pub price: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] pub size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    pub price: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    pub size: f64,
     pub num_order: i64, // This one could be an enum to handle both case
 }
 

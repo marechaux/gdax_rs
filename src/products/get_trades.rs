@@ -26,8 +26,10 @@ pub enum Side {
 pub struct Trade {
     time: DateTime<Utc>,
     trade_id: i64,
-    #[serde(deserialize_with = "deserialize_from_str")] price: f64,
-    #[serde(deserialize_with = "deserialize_from_str")] size: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    price: f64,
+    #[serde(deserialize_with = "deserialize_from_str")]
+    size: f64,
     side: Side,
 }
 
