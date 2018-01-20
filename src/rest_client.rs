@@ -1,15 +1,15 @@
+use hyper;
 use serde::de;
 use serde_json;
 use hyper::{Body, Client, Method, Request, Uri};
 use hyper::header::{ContentLength, UserAgent};
 use hyper::client::HttpConnector;
 use hyper_tls::HttpsConnector;
-use tokio_core::reactor::Core;
+use tokio_core::reactor::Handle;
 use futures::{Future, Stream};
 
 use url::Route;
 use error::RestError;
-use error::ParseError;
 
 const PUBLIC_API: &str = "https://api.gdax.com";
 const SANDBOX_API: &str = "https://api-public.sandbox.gdax.com";
@@ -17,44 +17,45 @@ const USER_AGENT: &str = concat!("gdax_rs/", env!("CARGO_PKG_VERSION"));
 
 pub struct RESTClient {
     api_url: String,
-    core: Core,
     client: Client<HttpsConnector<HttpConnector>, Body>,
 }
 
+// TODO: remove all unwrap and handle error (error chain??)
 impl RESTClient {
     /// Create a new `RESTClient` object with a specified API URL, for most cases, you should use
     /// `RESTClient::default` or `RESTClient::staging` to connect to GDAX
-    pub fn new(api_url: &str) -> Result<RESTClient, RestError> {
-        let core = Core::new()?;
-        let handle = core.handle();
-        let connector = HttpsConnector::new(4, &handle)
+    pub fn new(api_url: &str, handle: &Handle) -> Result<RESTClient, RestError> {
+        let connector = HttpsConnector::new(4, handle)
             .map_err(|e| RestError::HttpsConnectorError(e.to_string()))?;
-        let client = Client::configure().connector(connector).build(&handle);
+        let client = Client::configure().connector(connector).build(handle);
         Ok(RESTClient {
             api_url: String::from(api_url),
-            core,
             client,
         })
     }
 
     /// Returns the default APIConnector (connected to the staging API)
-    pub fn default() -> RESTClient {
-        RESTClient::new(PUBLIC_API).unwrap()
+    pub fn default(handle: &Handle) -> RESTClient {
+        RESTClient::new(PUBLIC_API, handle).unwrap()
     }
 
     /// Returns the sandbox APIConnector (connected to the sandbox API)
-    pub fn sandbox() -> RESTClient {
-        RESTClient::new(SANDBOX_API).unwrap()
+    pub fn sandbox(handle: &Handle) -> RESTClient {
+        RESTClient::new(SANDBOX_API, handle).unwrap()
     }
 
-    fn send_http_request<T: de::DeserializeOwned>(
+    /// This method send a request to GDAX API and return the result as a `Future`
+    pub fn send_request<T: 'static + de::DeserializeOwned>(
         &mut self,
-        request_handler: &EndPointRequest<T>,
-    ) -> Result<T, RestError> {
-        let request = request_handler.create_request();
+        request: &EndPointRequest<T>,
+    ) -> Box<Future<Item = T, Error = hyper::Error> + 'static> {
+        let request = request.create_request();
 
         // create the full request uri
-        let uri: Uri = format!("{}{}", self.api_url, request.route.to_string()).parse()?;
+        // TODO: remove unwrap
+        let uri: Uri = format!("{}{}", self.api_url, request.route.to_string())
+            .parse()
+            .unwrap();
 
         // create request
         let mut req = Request::new(request.http_method.clone(), uri);
@@ -65,32 +66,15 @@ impl RESTClient {
         // set the user agent (required by the API)
         req.headers_mut().set(UserAgent::new(USER_AGENT));
 
-        let work = self.client.request(req).and_then(|res| {
-            res.body().concat2().and_then(move |body| {
-                Ok(serde_json::from_slice(&body).map_err(|e| {
-                    match String::from_utf8(body.to_vec()) {
-                        Ok(http_body) => {
-                            RestError::ParseError(ParseError::new(http_body, e.to_string()))
-                        }
-                        Err(e) => RestError::from(e),
-                    }
-                }))
-            })
-        });
+        let work = self.client
+            .request(req)
+            .and_then(|res| res.body().concat2())
+            .and_then(|body| Ok(serde_json::from_slice(&body).unwrap()));
 
-        self.core.run(work)?
-    }
-
-    /// This method send a request to GDAX API and return the result as an struct `T`
-    pub fn request<T: de::DeserializeOwned>(
-        &mut self,
-        request_handler: &EndPointRequest<T>,
-    ) -> Result<T, RestError> {
-        self.send_http_request(request_handler)
+        Box::new(work)
     }
 }
 
-// TODO Should this be public?
 #[derive(PartialEq, Debug)]
 pub struct RestRequest {
     pub http_method: Method,
@@ -98,7 +82,6 @@ pub struct RestRequest {
     pub body: String,
 }
 
-// TODO : Should it be public?
 /// A struct that implement the trait `EndPointRequest` is capable of creating generate a
 /// request and parse the result.
 pub trait EndPointRequest<T: de::DeserializeOwned> {
@@ -108,6 +91,8 @@ pub trait EndPointRequest<T: de::DeserializeOwned> {
 // TODO: test error handling!
 #[cfg(test)]
 mod tests {
+    use tokio_core::reactor::Core;
+
     use mockito::{mock, SERVER_URL};
     use hyper::Method;
 
@@ -133,10 +118,16 @@ mod tests {
     #[test]
     fn test_fake_request() {
         let _m = mock("GET", "/test").with_body("{\"value\": 1}").create();
+        let mut core = Core::new().unwrap();
+        let handle = core.handle();
 
-        let mut test_client = RESTClient::new(SERVER_URL).unwrap();
+        let mut test_client = RESTClient::new(SERVER_URL, &handle).unwrap();
         let request = FakeRequestHandler {};
 
-        assert_eq!(test_client.request(&request).unwrap().value, 1);
+        let future = test_client.send_request(&request);
+
+        let value = core.run(future).unwrap();
+
+        assert_eq!(value.value, 1);
     }
 }
