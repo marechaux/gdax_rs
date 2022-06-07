@@ -1,8 +1,9 @@
 use hyper::Method;
+use serde_derive::{Serialize, Deserialize};
 
-use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+use crate::serde_util::deserialize_from_str;
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
 
 /// This struct is the request handler
 #[derive(Default)]

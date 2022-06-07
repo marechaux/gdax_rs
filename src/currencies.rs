@@ -2,10 +2,11 @@
 //! "Market Data/Currencies" section (<https://docs.gdax.com/#currencies>)
 
 use hyper::Method;
+use serde_derive::{Serialize, Deserialize};
 
-use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
+use crate::serde_util::deserialize_from_str;
 
 #[derive(Default)]
 pub struct GetCurrencies;

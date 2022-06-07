@@ -7,9 +7,10 @@ use hyper::client::HttpConnector;
 use hyper_tls::HttpsConnector;
 use tokio_core::reactor::Handle;
 use futures::{Future, Stream};
+use serde_derive::{Serialize, Deserialize};
 
-use url::Route;
-use error::RestError;
+use crate::url::Route;
+use crate::error::RestError;
 
 const PUBLIC_API: &str = "https://api.gdax.com";
 const SANDBOX_API: &str = "https://api-public.sandbox.gdax.com";
@@ -92,6 +93,7 @@ pub trait EndPointRequest<T: de::DeserializeOwned> {
 #[cfg(test)]
 mod tests {
     use tokio_core::reactor::Core;
+    use serde_derive::{Serialize, Deserialize};
 
     use mockito::{mock, SERVER_URL};
     use hyper::Method;

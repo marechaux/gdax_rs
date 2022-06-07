@@ -1,8 +1,10 @@
 use chrono::{DateTime, Utc};
 use hyper::Method;
+use serde_derive::{Serialize, Deserialize};
 
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
 
 pub struct GetHistoricRates {
     product_id: String,

@@ -3,9 +3,10 @@
 
 use hyper::Method;
 use chrono::{DateTime, Utc};
+use serde_derive::{Serialize, Deserialize};
 
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
 
 #[derive(Default)]
 pub struct GetTime;
