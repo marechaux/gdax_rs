@@ -52,7 +52,7 @@ impl Error for RestError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         None
     }
 }
@@ -82,15 +82,9 @@ impl fmt::Display for RestError {
     }
 }
 
-impl From<hyper::error::UriError> for RestError {
-    fn from(uri_error: hyper::error::UriError) -> RestError {
+impl From<hyper::Error> for RestError {
+    fn from(uri_error: hyper::Error) -> RestError {
         RestError::UriError(uri_error.to_string())
-    }
-}
-
-impl From<hyper::error::Error> for RestError {
-    fn from(error: hyper::error::Error) -> RestError {
-        RestError::RequestError(error.to_string())
     }
 }
 
@@ -105,3 +99,4 @@ impl From<io::Error> for RestError {
         RestError::CoreError(io_error)
     }
 }
+

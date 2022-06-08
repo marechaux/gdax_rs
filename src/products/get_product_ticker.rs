@@ -1,9 +1,12 @@
 use hyper::Method;
 use chrono::{DateTime, Utc};
+use serde_derive::{Serialize, Deserialize};
 
-use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+use crate::serde_util::deserialize_from_str;
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
+
+
 
 /// This struct represents the `Get Product Ticker` end point.
 /// <https://docs.gdax.com/#get-product-ticker>
@@ -37,7 +40,7 @@ pub struct Ticker {
 impl EndPointRequest<Ticker> for GetProductTicker {
     fn create_request(&self) -> RestRequest {
         RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&self.product_id)
@@ -59,7 +62,7 @@ mod tests {
     fn test_create_request() {
         let result = GetProductTicker::new(String::from("BTC-USD")).create_request();
         let expected = RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&"BTC-USD")

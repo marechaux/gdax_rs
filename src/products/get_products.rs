@@ -1,8 +1,9 @@
 use hyper::Method;
+use serde_derive::{Serialize, Deserialize};
 
-use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+use crate::serde_util::deserialize_from_str;
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
 
 /// This struct is the request handler
 #[derive(Default)]
@@ -32,7 +33,7 @@ pub struct Product {
 impl EndPointRequest<Vec<Product>> for GetProducts {
     fn create_request(&self) -> RestRequest {
         RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new().add_segment(&"/products"),
             body: String::new(),
         }
@@ -51,7 +52,7 @@ mod tests {
         let handler = GetProducts::new();
 
         let expected = RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new().add_segment(&"/products"),
             body: String::new(),
         };

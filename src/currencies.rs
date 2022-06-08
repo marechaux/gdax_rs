@@ -2,10 +2,11 @@
 //! "Market Data/Currencies" section (<https://docs.gdax.com/#currencies>)
 
 use hyper::Method;
+use serde_derive::{Serialize, Deserialize};
 
-use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
+use crate::serde_util::deserialize_from_str;
 
 #[derive(Default)]
 pub struct GetCurrencies;
@@ -27,7 +28,7 @@ pub struct Currency {
 impl EndPointRequest<Vec<Currency>> for GetCurrencies {
     fn create_request(&self) -> RestRequest {
         RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new().add_segment(&"currencies"),
             body: String::new(),
         }
@@ -46,7 +47,7 @@ mod tests {
         let result = GetCurrencies::new().create_request();
 
         let expected = RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new().add_segment(&"currencies"),
             body: String::new(),
         };

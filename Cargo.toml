@@ -2,16 +2,18 @@
 name = "gdax_rs"
 version = "0.1.0"
 authors = ["Tristan Marechaux <marechaux5@gmail.com>"]
+edition = "2021"
 
 [dependencies]
-mockito = "0.9.0"
-hyper = "0.11"
+mockito = "0.31"
+hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
 tokio-core = "0.1"
-hyper-tls = "0.1.2"
-futures = "0.1"
+hyper-tls = "0.5"
+futures = "0.3"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-itertools = "0.7.4"
+itertools = "0.10"
 chrono = { version = "0.4", features = ["serde"] }
-percent-encoding = "1.0.0"
+percent-encoding = "2.1"

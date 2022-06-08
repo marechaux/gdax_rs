@@ -1,8 +1,9 @@
 use hyper::Method;
+use serde_derive::{Serialize, Deserialize};
 
-use serde_util::deserialize_from_str;
-use rest_client::{EndPointRequest, RestRequest};
-use url::Route;
+use crate::serde_util::deserialize_from_str;
+use crate::rest_client::{EndPointRequest, RestRequest};
+use crate::url::Route;
 
 pub struct Get24hrStats {
     product_id: String,
@@ -27,7 +28,7 @@ pub struct Stats {
 impl EndPointRequest<Stats> for Get24hrStats {
     fn create_request(&self) -> RestRequest {
         RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&self.product_id)
@@ -48,7 +49,7 @@ mod tests {
         let result = Get24hrStats::new(String::from("BTC-USD")).create_request();
 
         let expected = RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&"BTC-USD")
