@@ -43,7 +43,7 @@ pub struct Candle {
 impl EndPointRequest<Vec<Candle>> for GetHistoricRates {
     fn create_request(&self) -> RestRequest {
         RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&self.product_id)
@@ -74,7 +74,7 @@ mod tests {
         ).create_request();
 
         let expected = RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&"BTC-USD")

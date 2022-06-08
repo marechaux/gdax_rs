@@ -45,7 +45,7 @@ pub struct PriceLevel {
 impl EndPointRequest<OrderBook<PriceLevel>> for GetProductOrderBook {
     fn create_request(&self) -> RestRequest {
         RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&self.product_id)
@@ -69,7 +69,7 @@ mod tests {
         let request_handler = GetProductOrderBook::new(String::from("BTC-USD"), Level::Level2);
         let result = request_handler.create_request();
         let expected = RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new()
                 .add_segment(&"products")
                 .add_segment(&"BTC-USD")

@@ -6,7 +6,8 @@ edition = "2021"
 
 [dependencies]
 mockito = "0.31"
-hyper = "0.14"
+hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
 tokio-core = "0.1"
 hyper-tls = "0.5"
 futures = "0.3"

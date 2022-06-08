@@ -52,7 +52,7 @@ impl Error for RestError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         None
     }
 }
@@ -88,12 +88,6 @@ impl From<hyper::Error> for RestError {
     }
 }
 
-impl From<hyper::Error> for RestError {
-    fn from(error: hyper::Error) -> RestError {
-        RestError::RequestError(error.to_string())
-    }
-}
-
 impl From<FromUtf8Error> for RestError {
     fn from(utf8_error: FromUtf8Error) -> RestError {
         RestError::FromUtf8Error(utf8_error)
@@ -105,3 +99,4 @@ impl From<io::Error> for RestError {
         RestError::CoreError(io_error)
     }
 }
+

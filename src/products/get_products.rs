@@ -33,7 +33,7 @@ pub struct Product {
 impl EndPointRequest<Vec<Product>> for GetProducts {
     fn create_request(&self) -> RestRequest {
         RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new().add_segment(&"/products"),
             body: String::new(),
         }
@@ -52,7 +52,7 @@ mod tests {
         let handler = GetProducts::new();
 
         let expected = RestRequest {
-            http_method: Method::Get,
+            http_method: Method::GET,
             route: Route::new().add_segment(&"/products"),
             body: String::new(),
         };

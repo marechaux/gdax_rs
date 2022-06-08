@@ -6,13 +6,13 @@ use tokio_core::reactor::Core;
 use gdax_rs::RESTClient;
 use gdax_rs::currencies::GetCurrencies;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut core = Core::new().unwrap();
     let handle = core.handle();
 
-    let mut test_client = RESTClient::default(&handle);
-    let products = core.run(test_client.send_request(&GetCurrencies::new()))
-        .unwrap();
+    let mut test_client = RESTClient::default();
+    let products = test_client.send_request(&GetCurrencies::new()).await.unwrap();
 
     println!("{:?}", products);
 }
